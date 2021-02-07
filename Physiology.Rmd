@@ -9,28 +9,49 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Set up
+## Set up
 ```{r}
-install.packages(c("ggplot2", "dplyr", "tidyr"))
+# install.packages(c("ggplot2", "dplyr", "tidyr"))
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-
-data <- read.csv("physiology_mastersheet.csv", stringsAsFactors = FALSE)
 ```
 
-### Exploratory Figures
-
-```{r cars}
-summary(cars)
+```{r}
+mydata <- read.csv("physiology_data.csv", stringsAsFactors = FALSE) %>% na_if("")
+df <- data.frame(mydata)
 ```
 
-## Including Plots
+## Summary Statistics
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+summary(df)
+```
+```{r}
+str(df)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Exploratory Figures
+
+### Heart Rate
+```{r}
+# Compare box and violin plots
+hr <- df %>% drop_na(heart_rate) # drop NA for heart rate
+ggplot(data = hr, aes(x = heating_rate, y = heart_rate, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("A boxplot of heart rate against heating rates") 
+```
+```{r}
+ggplot(data = hr, aes(x = heating_rate, y = heart_rate, , fill=time_point)) + geom_violin() + geom_jitter()
+```
+
+### Osmolality
+
+
+### Weight Loss
+
+### Thermal Equilibrium
+
+### Random Variables
+
+## Publication Figures
+
+###
