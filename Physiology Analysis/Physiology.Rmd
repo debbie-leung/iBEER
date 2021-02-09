@@ -11,8 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Set up
 ```{r}
-# install.packages(c("ggplot2", "dplyr", "tidyr", "gridExtra"))
-install.packages("cowplot")
+# install.packages(c("ggplot2", "dplyr", "tidyr", "gridExtra", "cowplot"))
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -131,6 +130,9 @@ plot_grid(plot_h, plot_l, labels = "AUTO")
 
 ### Thermal Equilibrium
 
+How to compare to water bath and surrounding air temperature? That data are recorded in the thermocouples, not by the thermal camera (I suppose we can put that in the appendix for additional reference?)
+
+Values in red are not certain
 ```{r}
 
 ```
@@ -145,8 +147,42 @@ Check for effects of experimental day?
 # Difference between geom_point() and geom_jitter()?
 
 shell_weight <- df %>% drop_na(average_weight)
+
+ggplot(data = shell_weight, aes(x = shell_length, y = average_weight)) + geom_jitter() + geom_smooth(method='lm', size = 0.5, color = 'black')
 ```
 
+```{r}
+# Check for relationship between sex and weight + sex and shell length
+
+sex_shell <- df %>% drop_na(sex) %>% drop_na(shell_length)
+sex_shell <- subset(sex_shell, sex == "F" | sex == "M") # remove F? and D in data
+
+plot_shell <- ggplot(data = sex_shell, aes(x = sex, y = shell_length, fill = sex)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter()
+
+sex_weight <- subset(shell_weight, sex == "F" | sex == "M")
+
+plot_weight <- ggplot(data = sex_weight, aes(x = sex, y = average_weight, fill = sex)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter()
+
+plot_grid(plot_shell, plot_weight, labels = "AUTO")  
+```
+
+```{r}
+# Check for effects of experimental day on heart rate and osmolality
+
+day_osmo <- df %>% drop_na(osmolality) %>% drop_na(experimental_day)
+day_osmo$experimental_day <- factor(day_osmo$experimental_day, levels = c("31/08/2020", "01/09/2020", "02/09/2020", "16/09/2020"))
+
+plot_osmo <- ggplot(data = day_osmo, aes(x = experimental_day, y = osmolality, fill = experimental_day)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + theme(axis.text.x = element_text(angle=45, hjust=1)) 
+
+day_hr <- df %>% drop_na(heart_rate)
+day_hr$experimental_day <- factor(day_hr$experimental_day, levels = c("31/08/2020", "01/09/2020", "02/09/2020", "16/09/2020"))
+
+plot_hr <- ggplot(data = day_hr, aes(x = experimental_day, y = heart_rate, fill = experimental_day)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + theme(axis.text.x = element_text(angle=45, hjust=1))
+
+plot_grid(plot_osmo, plot_hr, labels = "AUTO")  
+
+```
+Was also thinking of doing plots for experimental_day versus other variables to see if there are significant differences, but not sure if necessary since otherwise we could also do all random variables versus response variables...
 
 ## Publication Figures
 
