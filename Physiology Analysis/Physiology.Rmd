@@ -80,6 +80,7 @@ osmo_th <- ggplot(data = osmo, aes(x = heating_rate, y = osmolality, fill=tidal_
 
 plot_grid(osmo_tp, osmo_th, labels = "AUTO")
 ```
+
 Seems to have two outliers but I can only find one. Also every time I try to reproduce the graph, the two dots move position?!
 
 Also not plotting seawater osmolality...
@@ -136,7 +137,7 @@ wloss <- subset(wloss, time_point == "T1" | time_point == "T2" | time_point == "
 
 wloss_tp <- ggplot(data = wloss, aes(x = heating_rate, y = weight_loss, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Time Point")
 
-wloss_th <- ggplot(data = wloss, aes(x = heating_rate, y = weight_loss, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Weight Loss")
+wloss_th <- ggplot(data = wloss, aes(x = heating_rate, y = weight_loss, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Tidal Height")
 
 plot_grid(wloss_tp, wloss_th, labels = "AUTO")  
 ```
@@ -171,8 +172,37 @@ Values in red in the spreadsheet are not certain (I took the photos instead of M
 
 Is ggplot error bar different from the standard deviation I have calculated from the thermal camera?
 ```{r}
+tempavg <- df %>% drop_na(average_temp)
+tempavg <- subset(tempavg, time_point == "T1" | time_point == "T2" | time_point == "T0_air" | time_point == "T0_water")
 
+tempavg_tp <- ggplot(data = tempavg, aes(x = heating_rate, y = average_temp, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Time Point")
 
+tempavg_th <- ggplot(data = tempavg, aes(x = heating_rate, y = average_temp, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Tidal Height")
+
+# Compare high and low tidal heights at different time points
+tempavg_long <- tempavg %>% unite("rate_time", c("heating_rate", "time_point"), sep = "_", remove = FALSE)
+tempavg_long <- within(tempavg_long, rm("heating_rate", "time_point"))
+
+tempavg_t <- ggplot(data = tempavg_long, aes(x = rate_time, y = average_temp, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Time Point + Tidal Height") + theme(axis.text.x = element_text(angle=45, hjust=1)) + labs(x = "heating rate at different time points")
+
+plot_grid(tempavg_tp, tempavg_th, tempavg_t, labels = "AUTO")  
+```
+
+```{r}
+tempsd <- df %>% drop_na(temp_sd)
+tempsd <- subset(tempsd, time_point == "T1" | time_point == "T2" | time_point == "T0_air" | time_point == "T0_water")
+
+tempsd_tp <- ggplot(data = tempsd, aes(x = heating_rate, y = temp_sd, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Time Point")
+
+tempsd_th <- ggplot(data = tempsd, aes(x = heating_rate, y = temp_sd, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Tidal Height")
+
+# Compare high and low tidal heights at different time points
+tempsd_long <- tempsd %>% unite("rate_time", c("heating_rate", "time_point"), sep = "_", remove = FALSE)
+tempsd_long <- within(tempsd_long, rm("heating_rate", "time_point"))
+
+tempsd_t <- ggplot(data = tempsd_long, aes(x = rate_time, y = temp_sd, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Time Point + Tidal Height") + theme(axis.text.x = element_text(angle=45, hjust=1)) + labs(x = "heating rate at different time points")
+
+plot_grid(tempsd_tp, tempsd_th, tempsd_t, labels = "AUTO")  
 ```
 
 ### Random Variables
@@ -219,6 +249,7 @@ plot_hr <- ggplot(data = day_hr, aes(x = experimental_day, y = heart_rate, fill 
 plot_grid(plot_osmo, plot_hr, labels = "AUTO")  
 
 ```
+
 Was also thinking of doing plots for experimental_day versus other variables to see if there are significant differences, but not sure if necessary since otherwise we could also do all random variables versus response variables...
 
 ## Publication Figures
