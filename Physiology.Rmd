@@ -11,10 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Set up
 ```{r}
-# install.packages(c("ggplot2", "dplyr", "tidyr"))
+# install.packages(c("ggplot2", "dplyr", "tidyr", "gridExtra"))
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(gridExtra)
 ```
 
 ```{r}
@@ -34,17 +35,37 @@ str(df)
 ## Exploratory Figures
 
 ### Heart Rate
+Generally confused the different combinations of plots I can literally plot by selecting the different factor variables. Also arrangement styles.
 ```{r}
 # Compare box and violin plots
-hr <- df %>% drop_na(heart_rate) # drop NA for heart rate
-ggplot(data = hr, aes(x = heating_rate, y = heart_rate, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("A boxplot of heart rate against heating rates") 
+hr <- df %>% drop_na(heart_rate) # drop NA for heart rate, simultaneously filtering for H and L only
+
+ggplot(data = hr, aes(x = heating_rate, y = heart_rate, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Boxplot by Heating Rate") 
+
+ggplot(data = hr, aes(x = heating_rate, y = heart_rate, , fill=time_point)) + geom_violin() + geom_jitter() + ggtitle("Violin Plot by Heating Rate")
+
+# grid.arrange(hr_box, hr_violin, ncol = 2)
 ```
+
 ```{r}
-ggplot(data = hr, aes(x = heating_rate, y = heart_rate, , fill=time_point)) + geom_violin() + geom_jitter()
+# Compare high and low tidal heights at different time points
+
+# Change to long pivot
+hr_long <- hr %>% unite("rate_time", c("heating_rate", "time_point"), sep = "_", remove = FALSE)
+
+hr_long <- within(hr_long, rm("heating_rate", "time_point"))
+
+ggplot(data = hr_long, aes(x = rate_time, y = heart_rate, fill=tidal_height)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Boxplot of shore heights against warming rate at different time points") + theme(axis.text.x = element_text(angle=45, hjust=1)) + labs(x = "heating rate at different time points")
+
+# Can further split this into one with two time points side-by-side or two shore heights at different time points
+
 ```
 
 ### Osmolality
 
+```{r}
+
+```
 
 ### Weight Loss
 
@@ -54,4 +75,6 @@ ggplot(data = hr, aes(x = heating_rate, y = heart_rate, , fill=time_point)) + ge
 
 ## Publication Figures
 
-###
+Should we do any PCA diagram to group all the variables?
+
+## Statistical Tests
