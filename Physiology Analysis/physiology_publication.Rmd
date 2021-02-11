@@ -1,0 +1,57 @@
+---
+title: "Physiology_Publication"
+author: "Debbie Leung"
+date: "2/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set up
+```{r}
+# install.packages(c("ggplot2", "dplyr", "tidyr", "gridExtra", "cowplot", "lattice", "ggsci"))
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(gridExtra)
+library(cowplot)
+library(lattice)
+library(ggsci)
+```
+
+```{r, echo=FALSE}
+mydata <- read.csv("physiology_cleaned.csv", stringsAsFactors = FALSE) %>% na_if("")
+df <- data.frame(mydata)
+```
+
+## Heart Rate
+
+```{r}
+# Plot with both high and low tide
+hr <- df %>% drop_na(heart_rate) # drop NA for heart rate, simultaneously filtering for H and L only
+
+ggplot(data = hr, aes(x = time_point, y = heart_rate, fill=heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point(aes(color=tidal_height), alpha=0.7) + labs(x="time point", y="heart rate (hertz)", fill="warming rate") + theme_bw() + scale_fill_npg()
+```
+
+Comments:
+1. black dot in T0 for C_air
+2. how to use geom_point() to get points aligned for each heating rate
+3. follow npg color palette of Nature for the tidal points
+
+```{r}
+# Two separate plots of high and low tide side-by-side
+hr <- df %>% drop_na(heart_rate) # drop NA for heart rate, simultaneously filtering for H and L only
+high <- subset(hr, tidal_height == "H")
+low <- subset(hr, tidal_height == "L")
+
+ggplot(data = hr, aes(x = time_point, y = heart_rate, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height) + labs(x="time point", y="heart rate (hertz)", fill="warming rate") + theme_bw() + scale_fill_npg()
+
+```
+
+## Osmolality
+```{r}
+
+```
+

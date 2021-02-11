@@ -1,5 +1,5 @@
 ---
-title: "Physiology"
+title: "Physiology_Exploration"
 author: "Debbie Leung"
 date: "2/7/2021"
 output: html_document
@@ -21,7 +21,7 @@ library(lattice)
 ```
 
 ```{r}
-mydata <- read.csv("physiology_data.csv", stringsAsFactors = FALSE) %>% na_if("")
+mydata <- read.csv("physiology_cleaned.csv", stringsAsFactors = FALSE) %>% na_if("")
 df <- data.frame(mydata)
 ```
 
@@ -42,9 +42,9 @@ Generally confused the different combinations of plots I can literally plot by s
 # Compare box and violin plots
 hr <- df %>% drop_na(heart_rate) # drop NA for heart rate, simultaneously filtering for H and L only
 
-hr_box <- ggplot(data = hr, aes(x = heating_rate, y = heart_rate, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_jitter() + ggtitle("Boxplot of Heart Rate") 
+hr_box <- ggplot(data = hr, aes(x = heating_rate, y = heart_rate, fill=time_point)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point(aes(color=tidal_height)) + ggtitle("Boxplot of Heart Rate") 
 
-hr_violin <- ggplot(data = hr, aes(x = heating_rate, y = heart_rate, , fill=time_point)) + geom_violin() + geom_jitter() + ggtitle("Violin Plot of Heart Rate")
+hr_violin <- ggplot(data = hr, aes(x = heating_rate, y = heart_rate, , fill=time_point)) + geom_violin() + geom_jitter() + ggtitle("Violin Plot of Heart Rate") # Add error bars
 
 # grid.arrange(hr_box, hr_violin, ncol = 2)
 plot_grid(hr_box, hr_violin, labels = "AUTO")
@@ -251,6 +251,9 @@ plot_grid(plot_osmo, plot_hr, labels = "AUTO")
 ```
 
 Was also thinking of doing plots for experimental_day versus other variables to see if there are significant differences, but not sure if necessary since otherwise we could also do all random variables versus response variables...
+
+### PCA
+
 
 ## Publication Figures
 
