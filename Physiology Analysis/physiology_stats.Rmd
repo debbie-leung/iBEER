@@ -9,19 +9,72 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+my_data <- read.csv("physiology_cleaned.csv", stringsAsFactors = FALSE) %>% na_if("")
+```
+
 ## Covariables with Covariables
 
+```{r}
+cor.test(my_data$average_weight, my_data$shell_length, method = "pearson")
+```
+Conclude body weight is positively correlated with shell length
 
-```{r cars}
-summary(cars)
+```{r}
+#Model_1 <- lmer(trait1 ~ factor1, dataset)
+#anova(Model_1, ddf="lme4")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+weight_sex.aov <- aov(average_weight ~ sex, data = my_data)
+summary(weight_sex.aov)
+```
+```{r}
+weight_day.aov <- aov(average_weight ~ experimental_day, data = my_data)
+summary(weight_day.aov)
+```
+```{r shell length vs sex}
+length_sex.aov <- aov(shell_length ~ sex, data = my_data)
+summary(length_sex.aov)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Covariables with Dependent Variables
+
+Create a correlation matrix?
+```{r}
+#cor(x, method = "pearson", use = "complete.obs")
+#weight <- mydata[, c(7,8,12,13,14)] %>% drop_na("osmolality")
+```
+
+```{r}
+cor.test(my_data$average_weight, my_data$weight_loss, method = "pearson")
+```
+Average weight is correlated with weight loss!!!
+
+```{r}
+cor.test(my_data$average_weight, my_data$osmolality, method = "pearson")
+```
+
+```{r}
+cor.test(my_data$average_weight, my_data$heart_rate, method = "pearson")
+```
+
+```{r}
+cor.test(my_data$average_weight, my_data$average_temp, method = "pearson")
+```
+
+```{r}
+cor.test(my_data$average_weight, my_data$temp_sd, method = "pearson")
+```
+
+```{r}
+
+```
+
+## Independent with Dependent
+
+```{r}
+m1 <- aov(my_data$weight_loss_percent ~ )
+```
+
+

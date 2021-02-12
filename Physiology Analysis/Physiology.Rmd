@@ -216,7 +216,18 @@ Check for effects of experimental day?
 shell_weight <- df %>% drop_na(average_weight)
 
 ggplot(data = shell_weight, aes(x = shell_length, y = average_weight)) + geom_jitter() + geom_smooth(method='lm', size = 0.5, color = 'black')
+
 ```
+
+```{r}
+install.packages("ggpubr")
+library(ggpubr)
+ggscatter(shell_weight, x = "shell_length", y = "average_weight", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "shell length (cm)", ylab = "average body weight (g)")
+```
+
 
 ```{r}
 # Check for relationship between sex and weight + sex and shell length
@@ -253,10 +264,49 @@ plot_grid(plot_osmo, plot_hr, labels = "AUTO")
 Was also thinking of doing plots for experimental_day versus other variables to see if there are significant differences, but not sure if necessary since otherwise we could also do all random variables versus response variables...
 
 ### PCA
+```{r}
+#install.packages("ggfortify")
+library(ggfortify)
+library(cluster)
+```
+```{r}
+df_long <- df %>% unite("rate_time", c("heating_rate", "time_point"), sep = "_", remove = FALSE)
+df_long <- within(df_long, rm("heating_rate", "time_point"))
+
+```
+
+```{r}
+grp1 <- df_long %>% drop_na("weight_loss_percent") %>% drop_na("osmolality") %>% drop_na("heart_rate")
+pca_grp1 <- prcomp(na.omit(grp1[11:13]), scale=TRUE)
+grp1_plot <- autoplot(pca_grp1, data = df_long, colour = 'rate_time')
+
+grp2 <- df_long %>% drop_na("average_temp") %>% drop_na("temp_sd")
+pca_grp2 <- prcomp(na.omit(grp2[14:15]), scale=TRUE)
+grp2_plot <- autoplot(pca_grp2, data = df_long, colour = 'rate_time')
+
+plot_grid(grp1_plot, grp2_plot, labels = "AUTO")  
+```
+
+```{r}
+F <- subset(df, heating_rate == "F" | heating_rate == "C_air" | heating_rate == "C_water") %>% drop_na("weight_loss_percent") %>% drop_na("osmolality") %>% drop_na("heart_rate")
+M <- subset(df, heating_rate == "M") %>% drop_na("weight_loss_percent") %>% drop_na("osmolality") %>% drop_na("heart_rate")
+S <- subset(df, heating_rate == "S") %>% drop_na("weight_loss_percent") %>% drop_na("osmolality") %>% drop_na("heart_rate")
+
+F_pca <- prcomp(F[12:14], scale=TRUE)
+autoplot(F_pca, data = F, shape = 'time_point')
+```
+
+```{r}
 
 
-## Publication Figures
+autoplot(pam(cluster, 8), frame = TRUE, frame.type = 'norm')
+```
 
-Should we do any PCA diagram to group all the variables?
 
-## Statistical Tests
+```{r}
+pca2 <- df_long[14:15]
+df_pca2 <- prcomp(na.omit(pca2), scale=TRUE)
+autoplot(df_pca2)
+autoplot(df_pca2, data = df_long, colour = 'rate_time')
+```
+

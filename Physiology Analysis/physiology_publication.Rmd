@@ -51,7 +51,44 @@ ggplot(data = hr, aes(x = time_point, y = heart_rate, fill = heating_rate)) + st
 ```
 
 ## Osmolality
-```{r}
 
+```{r}
+# Two separate plots of high and low tide side-by-side
+osmo <- df %>% drop_na(osmolality) 
+high <- subset(osmo, tidal_height == "H")
+low <- subset(osmo, tidal_height == "L")
+
+ggplot(data = osmo, aes(x = time_point, y = osmolality, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height) + labs(x="time point", y= expression("osmolality (mOsm"~kg^-1~")"), fill="warming rate") + theme_bw() + scale_fill_npg()
+
+```
+
+### Weight Loss
+
+```{r}
+# Two separate plots of high and low tide side-by-side
+wloss <- df %>% drop_na(weight_loss_percent)
+high <- subset(wloss, tidal_height == "H")
+low <- subset(wloss, tidal_height == "L")
+
+ggplot(data = wloss, aes(x = time_point, y = weight_loss_percent, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height) + labs(x="time point", y="weight loss percentage", fill="warming rate") + theme_bw() + scale_fill_npg()
+```
+### Thermal Equilibrium
+
+```{r avgtemp}
+# Two separate plots of high and low tide side-by-side
+tempavg <- df %>% drop_na(average_temp)
+high <- subset(tempavg, tidal_height == "H")
+low <- subset(tempavg, tidal_height == "L")
+
+ggplot(data = tempavg, aes(x = time_point, y = average_temp, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height) + labs(x="time point", y= "average body temperature (°C)", fill="warming rate") + theme_bw() + scale_fill_npg()
+
+```
+```{r tempsd}
+# Two separate plots of high and low tide side-by-side
+tempsd <- df %>% drop_na(temp_sd)
+high <- subset(tempsd, tidal_height == "H")
+low <- subset(tempsd, tidal_height == "L")
+
+ggplot(data = tempsd, aes(x = time_point, y = temp_sd, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height) + labs(x="time point", y= "standard deviation of body temperature (°C)", fill="warming rate") + theme_bw() + scale_fill_npg()
 ```
 
