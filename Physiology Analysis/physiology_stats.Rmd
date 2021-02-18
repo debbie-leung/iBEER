@@ -2,19 +2,87 @@
 title: "physiology_stats"
 author: "Debbie Leung"
 date: "2/11/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Set up
+```{r}
+#install.packages("Hmisc")
+library("Hmisc")
+#install.packages("corrplot")
+library(corrplot)
+library(dplyr)
+library(tidyr)
+```
+
 ```{r}
 my_data <- read.csv("physiology_cleaned.csv", stringsAsFactors = FALSE) %>% na_if("")
 ```
 
+Steps:
+1. Compute statistical tests
+2. Compute normality and homogeneity tests
+3. Compute any post-hoc tests for significant results
+
 ## Covariables with Covariables
 
+### Correlation Matrix
+
+Problem: 
+cannot lump all continuous variables to display into a correlation matrix because of missing NA values... The matrices computed below removed avg_temp and temp_sd.
+```{r}
+con_var_na <- my_data %>% select(shell_length:heart_rate)
+test <- cor(con_var_na, use = "complete.obs", method = c("pearson"))
+test
+```
+
+
+```{r}
+# cannot lump all continuous variables to display into a correlation matrix because of missing NA values... (cut out avg_temp and temp_sd)
+con_var <- my_data %>% select(shell_length:heart_rate) %>% drop_na
+mydata.cor = cor(con_var, method = c("pearson"))
+corrplot(mydata.cor, type = "upper", order = "hclust", tl.col = "black")
+palette = colorRampPalette(c("blue", "white", "red")) (20)
+heatmap(x = mydata.cor, col = palette, symm = TRUE)
+```
+
+```{r}
+mydata.rcorr = rcorr(as.matrix(con_var))
+mydata.rcorr
+corrplot(mydata.rcorr$r, type="upper", order="hclust", tl.col = "black", 
+         p.mat = mydata.rcorr$P, sig.level = 0.01, insig = "blank")
+```
+
+```{r}
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+```
+
+
+```{r}
+mydata.rcorr = rcorr(as.matrix(con_var))
+flattenCorrMatrix(mydata.rcorr$r, mydata.rcorr$P)
+```
+
+### Individual Pearson Correlation Tests
 ```{r}
 cor.test(my_data$average_weight, my_data$shell_length, method = "pearson")
 ```
@@ -24,6 +92,10 @@ Conclude body weight is positively correlated with shell length
 #Model_1 <- lmer(trait1 ~ factor1, dataset)
 #anova(Model_1, ddf="lme4")
 ```
+
+### ANOVA
+
+Body weight, shell length, sex and experimental day are not statisically significantly affected.
 
 ```{r}
 weight_sex.aov <- aov(average_weight ~ sex, data = my_data)
@@ -37,10 +109,15 @@ summary(weight_day.aov)
 length_sex.aov <- aov(shell_length ~ sex, data = my_data)
 summary(length_sex.aov)
 ```
+```{r}
+length_day.aov <- aov(shell_length ~ experimental_day, data = my_data)
+summary(length_day.aov)
+```
 
 ## Covariables with Dependent Variables
 
-Create a correlation matrix?
+### Correlation Tests
+Please refer to the correlation matrix above. Below are individual tests for body weight and dependent variables.
 ```{r}
 #cor(x, method = "pearson", use = "complete.obs")
 #weight <- mydata[, c(7,8,12,13,14)] %>% drop_na("osmolality")
@@ -67,14 +144,67 @@ cor.test(my_data$average_weight, my_data$average_temp, method = "pearson")
 cor.test(my_data$average_weight, my_data$temp_sd, method = "pearson")
 ```
 
-```{r}
+### MANOVA
 
+mshapiro.test( )[in the mvnormtest package] can be used to perform the Shapiro-Wilk test for multivariate normality
+```{r}
+res1_sex.man <- manova(cbind(my_data$weight_loss_percent, my_data$osmolality, my_data$heart_rate) ~ sex, data = my_data)
+summary(res1_sex.man)
+summary.aov(res1_sex.man)
+```
+```{r}
+res2_sex.man <- manova(cbind(my_data$average_temp, my_data$temp_sd) ~ sex, data = my_data)
+summary(res2_sex.man)
+summary.aov(res2_sex.man)
+```
+
+Experimental day seems to have an effect on dependent variables...
+
+```{r}
+res1_day.man <- manova(cbind(my_data$weight_loss_percent, my_data$osmolality, my_data$heart_rate) ~ experimental_day, data = my_data)
+summary(res1_day.man)
+summary.aov(res1_day.man)
+```
+
+```{r}
+res2_day.man <- manova(cbind(my_data$average_temp, my_data$temp_sd) ~ experimental_day, data = my_data)
+summary(res2_day.man)
+summary.aov(res2_day.man)
 ```
 
 ## Independent with Dependent
 
+Questions:
+1. Split tests based on the independent variables (3 factors) or dependent variables (5 variables)?
+2. How to best time point within heating rate?
+3. Do I need to do residual plots?
+
 ```{r}
-m1 <- aov(my_data$weight_loss_percent ~ )
+m_weight <- aov(my_data$weight_loss_percent ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+summary(m_weight)
+```
+Need to further process to eliminate 3-way and 2-way interactions since they are insiginificant?
+
+```{r}
+m_osmolality <- aov(my_data$osmolality ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+summary(m_osmolality)
 ```
 
+```{r}
+m_hr <- aov(my_data$heart_rate ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+summary(m_hr)
+```
 
+```{r}
+m_atemp <- aov(my_data$average_temp ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+summary(m_atemp)
+```
+
+```{r}
+m_tempsd <- aov(my_data$temp_sd ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+summary(m_tempsd)
+```
+
+## References
++ correlation matrix: http://www.sthda.com/english/wiki/correlation-matrix-a-quick-start-guide-to-analyze-format-and-visualize-a-correlation-matrix-using-r-software
++ three-way ANOVA: https://www.r-bloggers.com/2017/02/raccoon-ch-2-4-3-way-anova/

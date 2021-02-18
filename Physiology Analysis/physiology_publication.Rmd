@@ -62,7 +62,7 @@ ggplot(data = osmo, aes(x = time_point, y = osmolality, fill = heating_rate)) + 
 
 ```
 
-### Weight Loss
+## Weight Loss
 
 ```{r}
 # Two separate plots of high and low tide side-by-side
@@ -72,7 +72,7 @@ low <- subset(wloss, tidal_height == "L")
 
 ggplot(data = wloss, aes(x = time_point, y = weight_loss_percent, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height) + labs(x="time point", y="weight loss percentage", fill="warming rate") + theme_bw() + scale_fill_npg()
 ```
-### Thermal Equilibrium
+## Thermal Equilibrium
 
 ```{r avgtemp}
 # Two separate plots of high and low tide side-by-side
