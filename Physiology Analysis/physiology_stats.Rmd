@@ -3,8 +3,8 @@ title: "physiology_stats"
 author: "Debbie Leung"
 date: "2/11/2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -84,6 +84,7 @@ flattenCorrMatrix <- function(cormat, pmat) {
 ```{r}
 mydata.rcorr = rcorr(as.matrix(con_var))
 flattenCorrMatrix(mydata.rcorr$r, mydata.rcorr$P)
+
 ```
 
 ### Individual Pearson Correlation Tests
@@ -180,13 +181,28 @@ summary.aov(res2_day.man)
 
 Questions:
 1. Split tests based on the independent variables (3 factors) or dependent variables (5 variables)?
-2. How to best time point within heating rate?
+2. How to nest time point within heating rate?
 3. Do I need to do residual plots?
+
+```{r}
+summary(m_weight)
+```
 
 ```{r}
 m_weight <- aov(my_data$weight_loss_percent ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_weight)
 ```
+```{r}
+m_weight_rate <- aov(my_data$weight_loss_percent ~ my_data$heating_rate)
+summary(m_weight_rate)
+TukeyHSD(m_weight_rate)
+```
+```{r}
+m_weight_time <- aov(my_data$weight_loss_percent ~ my_data$time_point)
+summary(m_weight_time)
+TukeyHSD(m_weight_time)
+```
+
 Need to further process to eliminate 3-way and 2-way interactions since they are insiginificant?
 
 ```{r}
@@ -197,6 +213,10 @@ summary(m_osmolality)
 ```{r}
 m_hr <- aov(my_data$heart_rate ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_hr)
+```
+```{r}
+m_hr_int <- aov(my_data$heart_rate ~ my_data$heating_rate*my_data$tidal_height, data = my_data)
+TukeyHSD(m_hr_int)
 ```
 
 ```{r}
@@ -250,13 +270,25 @@ ols_test_correlation(model)
 ```{r}
 leveneTest(my_data$weight_loss_percent ~ interaction(my_data$heating_rate, my_data$tidal_height, my_data$time_point), data = my_data)
 
+leveneTest(my_data$osmolality ~ interaction(my_data$heating_rate, my_data$tidal_height, my_data$time_point), data = my_data)
 
+leveneTest(my_data$heart_rate ~ interaction(my_data$heating_rate, my_data$tidal_height, my_data$time_point), data = my_data)
+
+leveneTest(my_data$average_temp ~ interaction(my_data$heating_rate, my_data$tidal_height, my_data$time_point), data = my_data)
 ```
 
 ### Post-hoc Tests
 
 ```{r}
+#install.packages("multcompView")
+library(multcompView)
+```
 
+```{r}
+TUKEY <- TukeyHSD(x=ANOVA, 'data$treatment', conf.level=0.95)
+TUKEY <- TukeyHSD(x=ANOVA, 'data$treatment', conf.level=0.95)
+TUKEY <- TukeyHSD(x=ANOVA, 'data$treatment', conf.level=0.95)
+TUKEY <- TukeyHSD(x=ANOVA, 'data$treatment', conf.level=0.95)
 ```
 
 
