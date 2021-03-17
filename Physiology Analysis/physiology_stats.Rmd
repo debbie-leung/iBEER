@@ -16,9 +16,13 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("Hmisc")
 library("Hmisc")
 #install.packages("corrplot")
+#install.packages("olsrr")
+#install.packages("car")
 library(corrplot)
 library(dplyr)
 library(tidyr)
+library(olsrr)
+library(car) 
 ```
 
 ```{r}
@@ -204,6 +208,57 @@ summary(m_atemp)
 m_tempsd <- aov(my_data$temp_sd ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_tempsd)
 ```
+## Checking Assumptions
+
+### Normality
+Reference: https://cran.r-project.org/web/packages/olsrr/vignettes/residual_diagnostics.html
+```{r}
+# Weight loss percent
+loss_model <- lm(my_data$weight_loss_percent ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+ols_plot_resid_qq(loss_model)
+
+# Osmolality
+osmolality_model <- lm(my_data$osmolality ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+ols_plot_resid_qq(osmolality_model)
+
+# Heart rate
+hr_model <- lm(my_data$heart_rate ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+ols_plot_resid_qq(hr_model)
+
+# Average temp
+temp_model <- lm(my_data$average_temp ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+ols_plot_resid_qq(temp_model)
+```
+
+```{r}
+ols_test_normality(loss_model)
+ols_test_normality(osmolality_model)
+ols_test_normality(hr_model)
+ols_test_normality(temp_model)
+```
+
+```{r}
+Correlation between observed residuals and expected residuals under normality.
+
+model <- lm(mpg ~ disp + hp + wt + qsec, data = mtcars)
+ols_test_correlation(model)
+```
+
+
+### Homogeneity of Variances
+
+```{r}
+leveneTest(my_data$weight_loss_percent ~ interaction(my_data$heating_rate, my_data$tidal_height, my_data$time_point), data = my_data)
+
+
+```
+
+### Post-hoc Tests
+
+```{r}
+
+```
+
 
 ## References
 + correlation matrix: http://www.sthda.com/english/wiki/correlation-matrix-a-quick-start-guide-to-analyze-format-and-visualize-a-correlation-matrix-using-r-software
