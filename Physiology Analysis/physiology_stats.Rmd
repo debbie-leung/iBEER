@@ -27,6 +27,7 @@ library(car)
 
 ```{r}
 my_data <- read.csv("physiology_cleaned.csv", stringsAsFactors = FALSE) %>% na_if("")
+summary(my_data)
 ```
 
 Steps:
@@ -184,6 +185,7 @@ Questions:
 2. How to nest time point within heating rate?
 3. Do I need to do residual plots?
 
+### Weight Loss
 ```{r}
 summary(m_weight)
 ```
@@ -193,41 +195,77 @@ m_weight <- aov(my_data$weight_loss_percent ~ my_data$heating_rate * my_data$tid
 summary(m_weight)
 ```
 ```{r}
-m_weight_rate <- aov(my_data$weight_loss_percent ~ my_data$heating_rate)
+m_weight_rate <- aov(weight_loss_percent ~ heating_rate, data = my_data)
 summary(m_weight_rate)
-TukeyHSD(m_weight_rate)
+temp <- TukeyHSD(m_weight_rate)
+write.csv(data.frame(temp$heating_rate), "results.csv")
 ```
 ```{r}
-m_weight_time <- aov(my_data$weight_loss_percent ~ my_data$time_point)
+m_weight_time <- aov(weight_loss_percent ~ time_point, data = my_data)
 summary(m_weight_time)
-TukeyHSD(m_weight_time)
+temp <- TukeyHSD(m_weight_time)
+write.csv(data.frame(temp$time_point), "results.csv")
 ```
 
 Need to further process to eliminate 3-way and 2-way interactions since they are insiginificant?
 
+### Osmolality
 ```{r}
 m_osmolality <- aov(my_data$osmolality ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_osmolality)
 ```
 
+### Heart Rate
 ```{r}
 m_hr <- aov(my_data$heart_rate ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_hr)
 ```
 ```{r}
-m_hr_int <- aov(my_data$heart_rate ~ my_data$heating_rate*my_data$tidal_height, data = my_data)
-TukeyHSD(m_hr_int)
+m_hr_tp <- aov(my_data$heart_rate ~ my_data$time_point, data = my_data)
+summary(m_hr_tp)
+#TukeyHSD(m_hr_tp)
 ```
 
+```{r}
+m_hr_int <- aov(heart_rate ~ heating_rate*tidal_height, data = my_data)
+temp <- TukeyHSD(m_hr_int)
+write.csv(data.frame(temp$heating_rate), "results.csv")
+```
+
+### Temperature
 ```{r}
 m_atemp <- aov(my_data$average_temp ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_atemp)
 ```
+```{r}
+m_avgtemp_int <- aov(average_temp ~ heating_rate, data = my_data)
+temp <- TukeyHSD(m_avgtemp_int)
+write.csv(data.frame(temp$heating_rate), "results.csv")
+```
+
+```{r}
+m_avgtemp_int <- aov(average_temp ~ time_point, data = my_data)
+temp <- TukeyHSD(m_avgtemp_int)
+write.csv(data.frame(temp$time_point), "results.csv")
+```
+
 
 ```{r}
 m_tempsd <- aov(my_data$temp_sd ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
 summary(m_tempsd)
 ```
+
+```{r}
+m_sdtemp_int <- aov(temp_sd ~ heating_rate*tidal_height*time_point, data = my_data)
+temp <- TukeyHSD(m_sdtemp_int)
+write.csv(data.frame(temp$`heating_rate:tidal_height:time_point`), "results.csv")
+```
+
+```{r}
+
+```
+
+
 ## Checking Assumptions
 
 ### Normality

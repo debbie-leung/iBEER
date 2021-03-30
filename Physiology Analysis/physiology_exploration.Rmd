@@ -215,7 +215,16 @@ Check for effects of experimental day?
 
 shell_weight <- df %>% drop_na(average_weight)
 
-ggplot(data = shell_weight, aes(x = shell_length, y = average_weight)) + geom_jitter() + geom_smooth(method='lm', size = 0.5, color = 'black')
+lm_eqn <- function(shell_weight){
+    m <- lm(average_weight ~ shell_length, shell_weight);
+    eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
+         list(a = format(unname(coef(m)[1]), digits = 2),
+              b = format(unname(coef(m)[2]), digits = 2),
+             r2 = format(summary(m)$r.squared, digits = 3)))
+    as.character(as.expression(eq));
+}
+
+ggplot(data = shell_weight, aes(x = shell_length, y = average_weight)) + geom_jitter() + geom_smooth(method='lm', size = 0.5, color = 'black') + geom_text(x = 40, y = 10, label = lm_eqn(df), parse = TRUE)
 
 ```
 

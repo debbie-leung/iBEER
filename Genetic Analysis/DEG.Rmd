@@ -1,0 +1,59 @@
+---
+title: "DEG"
+author: "Debbie Leung"
+date: "3/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Installing Packages
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("DESeq2")
+```
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("edgeR")
+```
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("limma")
+```
+```{r}
+install.packages("shiny")
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+## Filtering RSEM table
+
+
+```{r}
+ann <- read.delim("ann_table.txt")
+head(ann)
+
+# Select only SeqName column
+ann <- ann %>% pull(SeqName)
+```
+
+```{r}
+rsem <- read.delim("Transcript_RSEM_count_table.txt")
+result <- filter(rsem, Name %in% ann)
+write.csv(result, "RSEM_filtered.csv")
+```
+
