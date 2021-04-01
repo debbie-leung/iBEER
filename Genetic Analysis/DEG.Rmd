@@ -2,7 +2,9 @@
 title: "DEG"
 author: "Debbie Leung"
 date: "3/23/2021"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,28 +13,29 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Installing Packages
 
-```{r}
+```{r, eval = FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("DESeq2")
 ```
 
-```{r}
+```{r, eval = FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("edgeR")
 ```
 
-```{r}
+```{r, eval = FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("limma")
 ```
-```{r}
-install.packages("shiny")
+
+```{r, eval = FALSE}
+#install.packages("shiny")
 ```
 
 ```{r}
@@ -40,10 +43,22 @@ library(dplyr)
 library(tidyr)
 ```
 
-## Filtering RSEM table
-
+```{r}
+#install.packages("htmltools")
+library(htmltools)
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("DESeq2")
+```
 
 ```{r}
+library( "DESeq2" )
+library(ggplot2)
+```
+
+
+## Filtering RSEM table
+
+```{r, eval = FALSE}
 ann <- read.delim("ann_table.txt")
 head(ann)
 
@@ -51,9 +66,137 @@ head(ann)
 ann <- ann %>% pull(SeqName)
 ```
 
-```{r}
+```{r, eval = FALSE}
 rsem <- read.delim("Transcript_RSEM_count_table.txt")
 result <- filter(rsem, Name %in% ann)
 write.csv(result, "RSEM_filtered.csv")
 ```
 
+## Read data
+```{r}
+countData <- read.csv("FinalRSEM_for_DEapp.csv", header = TRUE, sep = ",")
+head(countData)
+```
+
+```{r}
+metaData <- read.csv('Metadata_DEapp.csv', header = TRUE, sep = ",", stringsAsFactor=TRUE)
+metaData
+```
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=countData, 
+                              colData=metaData, 
+                              design=~Group + Tide, tidy = TRUE)
+```
+
+```{r}
+dds <- DESeq(dds)
+#?DESeq
+```
+
+```{r}
+res <- results(dds)
+head(results(dds, tidy=TRUE))
+```
+
+```{r}
+summary(res) 
+```
+```{r}
+res <- res[order(res$padj),]
+head(res)
+write.csv(as.data.frame(res), 
+          file="Log2Fold.csv")
+```
+
+## Volcano Plot
+Reference: https://training.galaxyproject.org/training-material/topics/transcriptomics/tutorials/rna-seq-viz-with-volcanoplot/tutorial.html
+```{r}
+#reset par
+par(mfrow=c(1,1))
+# Make a basic volcano plot
+with(res, plot(log2FoldChange, -log10(pvalue), pch=20, main="Volcano plot", xlim=c(-3,3)))
+
+# Add colored points: blue if padj<0.01, red if log2FC>1 and padj<0.05)
+with(subset(res, padj<.01 ), points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+with(subset(res, padj<.01 & abs(log2FoldChange)>2), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+
+```
+
+## Heatmap
+
+Which transformation method should I use? Options: shifted logarithm transformation, the regularized log transformation and the variance stabilizing transformation
+```{r}
+ntd <- normTransform(dds)
+
+#install.packages("pheatmap")
+library("pheatmap")
+select <- order(rowMeans(counts(dds,normalized=TRUE)),
+                decreasing=TRUE)[1:20]
+df <- as.data.frame(colData(dds)[,c("Group","Tide")])
+pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
+         cluster_cols=FALSE, annotation_col=df)
+```
+```{r}
+vsdata <- vst(dds, blind=FALSE)
+sampleDists <- dist(t(assay(vsdata)))
+#install.packages("RColorBrewer")
+library("RColorBrewer")
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- paste(vsdata$Group, vsdata$Tide, sep="-")
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         col=colors)
+```
+
+```{r}
+# Gene clustering
+library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsdata)), decreasing = TRUE), 20)
+mat  <- assay(vsdata)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsdata)[, c("Group","Tide")])
+pheatmap(mat, annotation_col = anno)
+```
+
+## PCA
+```{r}
+#First we need to transform the raw count data
+#vst function will perform variance stabilizing transformation
+
+plotPCA(vsdata, intgroup="Group")
+plotPCA(vsdata, intgroup="Group", "Tide")
+```
+```{r}
+plotPCA(vsdata, intgroup=c("Group", "Tide"))
+
+pcaData <- plotPCA(vsdata, intgroup=c("Group", "Tide"), returnData=TRUE)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+ggplot(pcaData, aes(PC1, PC2, color=Group, shape=Tide)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  coord_fixed()
+```
+
+```{r}
+rld <- rlog(dds)
+plotPCA(rld)
+
+# also possible to perform custom transformation:
+dds <- estimateSizeFactors(dds)
+# shifted log of normalized counts
+se <- SummarizedExperiment(log2(counts(dds, normalized=TRUE) + 1),
+                           colData=colData(dds))
+# the call to DESeqTransform() is needed to
+# trigger our plotPCA method.
+plotPCA( DESeqTransform( se ) )
+```
+
+## Venn Diagram
+
+## Tutorials
+- https://lashlock.github.io/compbio/R_presentation.html
+- https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis 

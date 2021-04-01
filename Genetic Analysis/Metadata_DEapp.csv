@@ -1,0 +1,45 @@
+﻿Samples,Group,Tide,Time,Media
+Sample34,Control,High,T0 ,Air
+Sample33,Control,High,T0 ,Air
+Sample11,Control,Low,T0 ,Air
+Sample21,Control,Low,T0 ,Air
+Sample13,Control,High,T0 ,Water
+Sample10,Control,High,T0 ,Water
+Sample36,Control,Low,T0 ,Water
+Sample40,Control,Low,T0 ,Water
+Sample24,Fast,High,T1,Water
+Sample39,Fast,High,T1,Water
+Sample29,Fast,High,T1,Water
+Sample5,Fast,Low,T1,Water
+Sample3,Fast,Low,T1,Water
+Sample1,Fast,Low,T1,Water
+Sample43,Mid,High,T1,Water
+Sample35,Mid,High,T1,Water
+Sample32,Mid,High,T1,Water
+Sample25,Mid,Low,T1,Water
+Sample2,Mid,Low,T1,Water
+Sample18,Mid,Low,T1,Water
+Sample12,Slow,High,T1,Water
+Sample22,Slow,High,T1,Water
+Sample9,Slow,High,T1,Water
+Sample20,Slow,Low,T1,Water
+Sample8,Slow,Low,T1,Water
+Sample38,Slow,Low,T1,Water
+Sample23,Fast,High,T2,Water
+Sample41,Fast,High,T2,Water
+Sample19,Fast,High,T2,Water
+Sample7,Fast,Low,T2,Water
+Sample28,Fast,Low,T2,Water
+Sample27,Fast,Low,T2,Water
+Sample14,Mid,High,T2,Water
+Sample37,Mid,High,T2,Water
+Sample17,Mid,High,T2,Water
+Sample6,Mid,Low,T2,Water
+Sample26,Mid,Low,T2,Water
+Sample42,Mid,Low,T2,Water
+Sample44,Slow,High,T2,Water
+Sample30,Slow,High,T2,Water
+Sample31,Slow,High,T2,Water
+Sample4,Slow,Low,T2,Water
+Sample15,Slow,Low,T2,Water
+Sample16,Slow,Low,T2,Water
