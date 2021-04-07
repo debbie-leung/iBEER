@@ -73,19 +73,20 @@ write.csv(result, "RSEM_filtered.csv")
 ```
 
 ## Read data
+
 ```{r}
-countData <- read.csv("FinalRSEM_for_DEapp.csv", header = TRUE, sep = ",")
+countData <- read.csv("FinalRSEM_air.csv", header = TRUE, sep = ",")
 head(countData)
 ```
 
 ```{r}
-metaData <- read.csv('Metadata_DEapp.csv', header = TRUE, sep = ",", stringsAsFactor=TRUE)
+metaData <- read.csv('Metadata_air.csv', header = TRUE, sep = ",", stringsAsFactor=TRUE)
 metaData
 ```
 ```{r}
 dds <- DESeqDataSetFromMatrix(countData=countData, 
                               colData=metaData, 
-                              design=~Group + Tide, tidy = TRUE)
+                              design = ~ Rate + Tide + Time, tidy = TRUE)
 ```
 
 ```{r}
@@ -95,18 +96,50 @@ dds <- DESeq(dds)
 
 ```{r}
 res <- results(dds)
-head(results(dds, tidy=TRUE))
+res <- results(dds, tidy=TRUE)
+#write.csv(as.data.frame(res), file="air.csv")
 ```
 
 ```{r}
 summary(res) 
 ```
+
 ```{r}
 res <- res[order(res$padj),]
 head(res)
-write.csv(as.data.frame(res), 
-          file="Log2Fold.csv")
 ```
+
+```{r}
+annotation <- read.csv("annotation.csv", header = TRUE, sep = ",", stringsAsFactor=TRUE)
+```
+
+### LRT Test
+
+```{r}
+dds_rate <- DESeq(dds, test="LRT", reduced=~Tide + Time)
+res_rate <- results(dds_rate)
+res_rate <- res_rate[order(res_rate$padj),]
+res_rate
+#summary(results_rate)
+#clusters <- degPatterns(cluster_rlog, metadata = meta, time="time", col="treatment")
+```
+```{r}
+summary(res_rate)
+```
+
+
+```{r}
+dds_tide <- DESeq(dds, test="LRT", reduced=~Rate + Time)
+res_tide <- results(dds_tide)
+res_tide <- res_tide[order(res_tide$padj),]
+head(res_tide)
+```
+
+```{r}
+dds_time <- DESeq(dds, test="LRT", reduced=~Rate + Tide)
+res <- results(dds_time)
+```
+
 
 ## Volcano Plot
 Reference: https://training.galaxyproject.org/training-material/topics/transcriptomics/tutorials/rna-seq-viz-with-volcanoplot/tutorial.html
@@ -125,6 +158,12 @@ with(subset(res, padj<.01 & abs(log2FoldChange)>2), points(log2FoldChange, -log1
 ## Heatmap
 
 Which transformation method should I use? Options: shifted logarithm transformation, the regularized log transformation and the variance stabilizing transformation
+
+```{r}
+write.csv(assay(ntd)[select,], file="dds_norm_counts.csv")
+```
+
+
 ```{r}
 ntd <- normTransform(dds)
 
@@ -132,7 +171,7 @@ ntd <- normTransform(dds)
 library("pheatmap")
 select <- order(rowMeans(counts(dds,normalized=TRUE)),
                 decreasing=TRUE)[1:20]
-df <- as.data.frame(colData(dds)[,c("Group","Tide")])
+df <- as.data.frame(colData(dds)[,c("Rate","Tide", "Time")])
 pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
          cluster_cols=FALSE, annotation_col=df)
 ```
@@ -153,11 +192,29 @@ pheatmap(sampleDistMatrix,
 
 ```{r}
 # Gene clustering
+
+#install.packages("gplots")
+#library(DEFormats)
+#library(gplots)
+mcols(dds) <- cbind(mcols(dds), annotation$Gene)
+all(rownames(dds) == annotation$Transcript)
+sum(is.na(annotation$Gene))
+sum(duplicated(annotation$Gene))
+vsdata <- vst(dds, blind=FALSE)
+heatmap.2(assay(vsdata)[select,], col = redgreen, Rowv = TRUE, Colv = FALSE, scale="none",dendrogram="none", trace="none", margin=c(5, 6), labRow = annotation[select,"Gene"])
+heatmap.2(assay(vsdata)[select,], col = redgreen, Rowv = FALSE, Colv = FALSE, scale="none",dendrogram="none", trace="none", margin=c(10, 6), labRow = annotation[select,"Gene"])
+```
+
+```{r}
 library("genefilter")
 topVarGenes <- head(order(rowVars(assay(vsdata)), decreasing = TRUE), 20)
 mat  <- assay(vsdata)[ topVarGenes, ]
+
+# find gene names corresponding to transcripts
+library(magrittr)
 mat  <- mat - rowMeans(mat)
-anno <- as.data.frame(colData(vsdata)[, c("Group","Tide")])
+anno <- as.data.frame(colData(vsdata)[, c("Rate","Tide","Time")])
+mat %>% set_rownames(annotation$Gene[ topVarGenes ]) -> mat
 pheatmap(mat, annotation_col = anno)
 ```
 
@@ -166,20 +223,24 @@ pheatmap(mat, annotation_col = anno)
 #First we need to transform the raw count data
 #vst function will perform variance stabilizing transformation
 
-plotPCA(vsdata, intgroup="Group")
-plotPCA(vsdata, intgroup="Group", "Tide")
+plotPCA(vsdata, intgroup="Rate")
+plotPCA(vsdata, intgroup="Rate", "Tide", "Time")
 ```
 ```{r}
-plotPCA(vsdata, intgroup=c("Group", "Tide"))
+plotPCA(vsdata, intgroup=c("Rate", "Tide", "Time"))
 
-pcaData <- plotPCA(vsdata, intgroup=c("Group", "Tide"), returnData=TRUE)
+pcaData <- plotPCA(vsdata, intgroup=c("Rate", "Tide", "Time"), returnData=TRUE)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
-ggplot(pcaData, aes(PC1, PC2, color=Group, shape=Tide)) +
+ggplot(pcaData, aes(PC1, PC2, color=Rate, fill=Tide, shape=Time)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
-  coord_fixed()
+  coord_fixed() 
 ```
+```{r}
+head(vsdata)
+```
+
 
 ```{r}
 rld <- rlog(dds)
@@ -194,6 +255,12 @@ se <- SummarizedExperiment(log2(counts(dds, normalized=TRUE) + 1),
 # trigger our plotPCA method.
 plotPCA( DESeqTransform( se ) )
 ```
+
+```{r}
+library(ggpubr)
+library(factoextra)
+```
+
 
 ## Venn Diagram
 

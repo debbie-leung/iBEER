@@ -187,8 +187,18 @@ Questions:
 
 ### Weight Loss
 ```{r}
+WL <- my_data[my_data$heating_rate %in% c('F', 'M', 'S'),] 
+WL <- WL[!is.na(WL$weight_loss_percent),]
+WL <- WL %>% select(1:6,weight_loss_percent)
+
+m_weight <- aov(weight_loss_percent ~ heating_rate * tidal_height * time_point, data = WL)
 summary(m_weight)
 ```
+```{r}
+m_weight_rate <- aov(weight_loss_percent ~ heating_rate, data = WL)
+TukeyHSD(m_weight_rate)
+```
+
 
 ```{r}
 m_weight <- aov(my_data$weight_loss_percent ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
@@ -217,19 +227,35 @@ summary(m_osmolality)
 
 ### Heart Rate
 ```{r}
-m_hr <- aov(my_data$heart_rate ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+HR <- my_data[my_data$heating_rate %in% c('F', 'M', 'S'),] 
+HR <- HR[!is.na(HR$heart_rate),]
+HR <- HR %>% select(1:6,heart_rate)
+
+m_hr <- aov(heart_rate ~ heating_rate * tidal_height * time_point, data = HR)
 summary(m_hr)
-```
-```{r}
-m_hr_tp <- aov(my_data$heart_rate ~ my_data$time_point, data = my_data)
-summary(m_hr_tp)
-#TukeyHSD(m_hr_tp)
 ```
 
 ```{r}
-m_hr_int <- aov(heart_rate ~ heating_rate*tidal_height, data = my_data)
-temp <- TukeyHSD(m_hr_int)
-write.csv(data.frame(temp$heating_rate), "results.csv")
+m_hr_tp <- aov(heart_rate ~ time_point, data = HR)
+summary(m_hr_tp)
+TukeyHSD(m_hr_tp)
+```
+
+
+```{r}
+m_hr <- aov(my_data$heart_rate ~ my_data$heating_rate * my_data$tidal_height * my_data$time_point, data = my_data)
+summary(m_hr)
+```
+
+```{r}
+m_hr_tp <- aov(my_data$heart_rate ~ my_data$time_point, data = my_data)
+summary(m_hr_tp)
+TukeyHSD(m_hr_tp)
+```
+
+```{r}
+m_hr_int <- aov(heart_rate ~ heating_rate*time_point, data = my_data)
+TukeyHSD(m_hr_int)
 ```
 
 ### Temperature

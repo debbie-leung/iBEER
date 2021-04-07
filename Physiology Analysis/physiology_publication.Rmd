@@ -42,7 +42,7 @@ Comments:
 3. follow npg color palette of Nature for the tidal points
 
 ```{r}
-compare_means(heart_rate ~ heating_rate, data = my_data, method = "anova")
+compare_means(heart_rate ~ heating_rate, data = mydata, method = "anova")
 ```
 
 ```{r}
@@ -52,7 +52,7 @@ high <- subset(hr, tidal_height == "H")
 low <- subset(hr, tidal_height == "L")
 #my_comparisons <- list( c("T0", "T1"), c("T0", "T2"), c("T1", "T2"))
 
-ggplot(data = hr, aes(x = time_point, y = heart_rate, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height, labeller = labeller(tidal_height = c("H" = "Tidal Height (TH): High", "L" = "Tidal Height (TH): Low"))) + labs(x="Time Point (TP)", y="Heart Rate (Hertz)", fill="Warming Rate (WR)") + theme_bw() + scale_fill_npg() + annotate("text", x = 2, y = 0.6, label = "WR: p=0.000461, TP: p=010996,", size = 3) + annotate("text", x = 2, y = 0.58, label = "WR*TH: p=0.014742", size = 3)
+ggplot(data = hr, aes(x = time_point, y = heart_rate, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height, labeller = labeller(tidal_height = c("H" = "Tidal Height (TH): High", "L" = "Tidal Height (TH): Low"))) + labs(x="Time Point (TP)", y="Heart Rate (Hertz)", fill="Warming Rate (WR)") + theme_bw() + scale_fill_npg() #+ annotate("text", x = 2, y = 0.6, label = "WR: p=0.000461, TP: p=010996,", size = 3) #+ annotate("text", x = 2, y = 0.58, label = "WR*TH: p=0.014742", size = 3)
 
 ```
 
@@ -76,7 +76,7 @@ wloss <- df %>% drop_na(weight_loss_percent)
 high <- subset(wloss, tidal_height == "H")
 low <- subset(wloss, tidal_height == "L")
 
-ggplot(data = wloss, aes(x = time_point, y = weight_loss_percent, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height, labeller = labeller(tidal_height = c("H" = "Tidal Height (TH): High", "L" = "Tidal Height (TH): Low"))) + labs(x="Time Point (TP)", y="Weight Loss Percentage", fill="Warming Rate (WR)") + theme_bw() + scale_fill_npg() + annotate("text", x = 2, y = 3.5, label = "WR: p=3.3e-10, TP: p=0.000118", size = 3)
+ggplot(data = wloss, aes(x = time_point, y = weight_loss_percent, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height, labeller = labeller(tidal_height = c("H" = "Tidal Height (TH): High", "L" = "Tidal Height (TH): Low"))) + labs(x="Time Point (TP)", y="Weight Loss Percentage", fill="Warming Rate (WR)") + theme_bw() + scale_fill_npg() #+ annotate("text", x = 2, y = 3.5, label = "WR: p=3.3e-10, TP: p=0.000118", size = 3)
 ```
 
 ## Thermal Equilibrium
@@ -87,7 +87,7 @@ tempavg <- df %>% drop_na(average_temp)
 high <- subset(tempavg, tidal_height == "H")
 low <- subset(tempavg, tidal_height == "L")
 
-ggplot(data = tempavg, aes(x = time_point, y = average_temp, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height, labeller = labeller(tidal_height = c("H" = "Tidal Height (TH): High", "L" = "Tidal Height (TH): Low"))) + labs(x="Time Point (TP)", y= "Average Body Temperature (°C)", fill="Warming Rate (WR)") + theme_bw() + scale_fill_npg() + annotate("text", x = 2, y = 41, label = "WR: p<2e-16, TP: p=0.00228", size = 3)
+ggplot(data = tempavg, aes(x = time_point, y = average_temp, fill = heating_rate)) + stat_boxplot(geom = "errorbar") + geom_boxplot() + geom_point() + facet_wrap(~tidal_height, labeller = labeller(tidal_height = c("H" = "Tidal Height (TH): High", "L" = "Tidal Height (TH): Low"))) + labs(x="Time Point (TP)", y= "Average Body Temperature (°C)", fill="Warming Rate (WR)") + theme_bw() + scale_fill_npg() #+ annotate("text", x = 2, y = 41, label = "WR: p<2e-16, TP: p=0.00228", size = 3)
 
 ```
 ```{r tempsd}
